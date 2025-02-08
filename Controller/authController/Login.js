@@ -25,10 +25,10 @@ const Login=async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
 
     // Generate JWT tokens
-    const accessToken = jwt.sign({ userId: user._id }, ACCESS_TOKEN_SECRET, {
+    const accessToken = jwt.sign({ userId: user._id,username:user.username }, ACCESS_TOKEN_SECRET, {
       expiresIn: "1h",
     });
-    const refreshToken = jwt.sign({ userId: user._id }, REFRESH_TOKEN_SECRET, {
+    const refreshToken = jwt.sign({ userId: user._id,username:user.username }, REFRESH_TOKEN_SECRET, {
       expiresIn: "20d",
     });
 
