@@ -40,21 +40,21 @@ const users = {};
 chatIo.setMaxListeners(20);
 
 chatIo.on("connection", (socket) => {
-  socket.on("message", async (data) => {
-    const room = [data.sender_id, data.receiver_id].sort().join("_"); // Generate consistent room name
+  socket.on("room_join", (data) => {
 
-    // Join the room
-    if (!socket.rooms.has(room)) {
-      socket.join(room);
-    }
-
-    // Store user info in users object
+    const room= [data.sender_id, data.receiver_id].sort().join("_");
+    socket.join(room);
     users[socket.id] = {
       username: data.username,
       userid: data.sender_id,
       room: room,
     };
+  });
 
+  socket.on("message", async (data) => {
+
+    
+    const room= [data.sender_id, data.receiver_id].sort().join("_");
     const alreadyExistsInDB = await Chat.findOne({
       $or: [
         { sender_id: data.sender_id, receiver_id: data.receiver_id },
@@ -66,8 +66,8 @@ chatIo.on("connection", (socket) => {
       const newChat = new Chat({
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
-        sender_ref: data.sender_id,
-        receiver_ref: data.receiver_id,
+        sender_ref:data.sender_id,
+        receiver_ref:data.receiver_id,
         comments: [
           {
             sender_id: data.sender_id,
@@ -96,7 +96,7 @@ chatIo.on("connection", (socket) => {
       );
     }
     console.log(data);
-    chatIo.to(data.room).emit("message", data);
+    chatIo.to(room).emit("message", data);
   });
 
   socket.on("disconnect", (reason) => {
