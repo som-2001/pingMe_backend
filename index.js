@@ -91,6 +91,7 @@ chatIo.on("connection", (socket) => {
         }
       );
     }
+    console.log(data);
     chatIo.to(data.room).emit("message", data);
   });
 
