@@ -13,7 +13,7 @@ dotenv.config();
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: ["*"],
+    origin: "https://ping-me-frontend.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
