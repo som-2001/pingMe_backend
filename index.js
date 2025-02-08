@@ -17,7 +17,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: process.env.BASEURL,
+    origin: process.env.BASEURL, 
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
