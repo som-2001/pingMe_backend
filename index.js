@@ -44,7 +44,9 @@ chatIo.on("connection", (socket) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_"); // Generate consistent room name
 
     // Join the room
-    socket.join(room);
+    if (!socket.rooms.has(room)) {
+      socket.join(room);
+    }
 
     // Store user info in users object
     users[socket.id] = {
