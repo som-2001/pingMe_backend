@@ -2,10 +2,9 @@ const Chat = require("../../model/chatSchema");
 
 const getMessages = async (req, res) => {
   try {
-    const { sender_id, receiver_id, page = 1 } = req.body; // Get sender, receiver & page
-    const limit = 10; // Number of messages per page
+    const { sender_id, receiver_id, page = 1 } = req.body; 
+    const limit = 10;
 
-    // Find chat between sender and receiver
     const chat = await Chat.findOne({
       $or: [
         { sender_id: sender_id, receiver_id: receiver_id },
@@ -17,21 +16,22 @@ const getMessages = async (req, res) => {
       return res.status(200).json({ messages: [], totalMessages: 0 });
     }
 
-    // Get total messages count
     const totalMessages = chat.comments.length;
 
-    // Paginate messages (fetch from the latest)
-    const paginatedMessages = chat.comments
-      .slice()
+    const totalPages = Math.ceil(totalMessages / limit);
+    const skip = (page - 1) * limit;
 
-      .slice((page - 1) * limit, page * limit);
+    const messagesToShow = chat.comments
+      .slice(Math.max(0, totalMessages - (skip + limit)), totalMessages - skip)
+      // .reverse();
 
-    res.status(200).json({ messages: paginatedMessages, totalMessages });
+    res.status(200).json({ messages: messagesToShow, totalMessages, totalPages });
   } catch (err) {
     console.error("Error fetching messages:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const getChats = async (req, res) => {
   try {

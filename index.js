@@ -13,7 +13,7 @@ dotenv.config();
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -21,7 +21,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -41,8 +41,7 @@ chatIo.setMaxListeners(20);
 
 chatIo.on("connection", (socket) => {
   socket.on("room_join", (data) => {
-
-    const room= [data.sender_id, data.receiver_id].sort().join("_");
+    const room = [data.sender_id, data.receiver_id].sort().join("_");
     socket.join(room);
     users[socket.id] = {
       username: data.username,
@@ -52,9 +51,7 @@ chatIo.on("connection", (socket) => {
   });
 
   socket.on("message", async (data) => {
-
-    
-    const room= [data.sender_id, data.receiver_id].sort().join("_");
+    const room = [data.sender_id, data.receiver_id].sort().join("_");
     const alreadyExistsInDB = await Chat.findOne({
       $or: [
         { sender_id: data.sender_id, receiver_id: data.receiver_id },
@@ -66,8 +63,8 @@ chatIo.on("connection", (socket) => {
       const newChat = new Chat({
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
-        sender_ref:data.sender_id,
-        receiver_ref:data.receiver_id,
+        sender_ref: data.sender_id,
+        receiver_ref: data.receiver_id,
         comments: [
           {
             sender_id: data.sender_id,
