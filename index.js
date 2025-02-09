@@ -5,10 +5,17 @@ const authRoute = require("./routes/auth.js");
 const userListRoute = require("./routes/userList.js");
 const chatRoute = require("./routes/chat.js");
 const Chat = require("./model/chatSchema.js");
+const User = require("./model/UserSchema.js");
 const app = express();
 const server = require("http").createServer(app);
 const dotenv = require("dotenv");
+const admin = require("firebase-admin");
 dotenv.config();
+
+const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
@@ -38,6 +45,40 @@ app.use("/chat", chatRoute);
 const chatIo = io.of("/chat");
 const users = {};
 chatIo.setMaxListeners(20);
+
+const sendNotification = async (receiverId, message) => {
+  const user = await User.findById(receiverId);
+  if (!user || !user.fcmToken) return console.log("No FCM token found");
+
+  const payload = {
+    notification: {
+      title: "New Message",
+      body: message,
+    },
+    token: user.fcmToken,
+  };
+
+  admin
+    .messaging()
+    .send(payload)
+    .then((response) => console.log("✅ Notification sent:", response))
+    .catch((error) => console.log("❌ Notification error:", error));
+};
+
+app.post("/chat/send-message", async (req, res) => {
+  const { senderId, receiverId, message } = req.body;
+
+  const user = await User.findById(receiverId);
+
+  if (user.status === "offline") {
+    try {
+      sendNotification(receiverId, message);
+      res.json({ success: true, message: "Message sent!" });
+    } catch (error) {
+      res.status(500).json({ error: "Message sending failed" });
+    }
+  }
+});
 
 chatIo.on("connection", (socket) => {
   socket.on("room_join", (data) => {
@@ -96,7 +137,7 @@ chatIo.on("connection", (socket) => {
     chatIo.to(room).emit("message", data);
   });
 
-  socket.on("disconnect", (reason) => {
+  socket.on("disconnect", async (reason) => {
     const user = users[socket.id];
 
     if (user) {
@@ -104,8 +145,25 @@ chatIo.on("connection", (socket) => {
         `${user.username} disconnected from room ${user.room}, reason is ${reason}`
       );
       delete users[socket.id];
+
+      await User.findByIdAndUpdate(
+        user.userid,
+        { status: "offline" },
+        { upsert: true }
+      );
     }
   });
+});
+
+app.post("/users/update-fcm-token", async (req, res) => {
+  const { userId, token } = req.body;
+  console.log(req.body);
+  try {
+    await User.findByIdAndUpdate(userId, { fcmToken: token }, { upsert: true });
+    res.json({ success: true, message: "FCM Token updated" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update FCM token" });
+  }
 });
 
 server.listen(3001, () => {
