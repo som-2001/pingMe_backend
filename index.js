@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -59,7 +59,7 @@ const chatIo = io.of("/chat");
 const users = {};
 chatIo.setMaxListeners(20);
 
-const sendNotification = async (receiverId, message) => {
+const sendNotification = async (receiverId,message,username,profileImg) => {
   const user = await User.findById(receiverId);
   if (!user || !user.fcmToken) return console.log("No FCM token found");
 
@@ -67,6 +67,13 @@ const sendNotification = async (receiverId, message) => {
     notification: {
       title: "New Message",
       body: message,
+      
+    },
+    data: {
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+      url: `https://ping-me-frontend.vercel.app/chat/${receiverId}`, // URL for redirection
+      username:username,
+      profileImg:profileImg,
     },
     token: user.fcmToken,
   };
@@ -79,13 +86,13 @@ const sendNotification = async (receiverId, message) => {
 };
 
 app.post("/chat/send-message", async (req, res) => {
-  const { senderId, receiverId, message } = req.body;
+  const { senderId, receiverId, message,username,profileImg } = req.body;
 
   const user = await User.findById(receiverId);
 
   if (user.status === "offline") {
     try {
-      sendNotification(receiverId, message);
+      sendNotification(receiverId, message,username,profileImg);
       res.json({ success: true, message: "Message sent!" });
     } catch (error) {
       res.status(500).json({ error: "Message sending failed" });
