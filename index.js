@@ -72,8 +72,8 @@ const sendNotification = async (receiverId,message,username,profileImg) => {
     data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
       url: `https://ping-me-frontend.vercel.app/chat/${receiverId}`, // URL for redirection
-      username:username,
-      profileImg:profileImg,
+      username:String(username),
+      profileImg:String(profileImg),
     },
     token: user.fcmToken,
   };
