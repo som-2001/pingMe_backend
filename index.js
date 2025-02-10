@@ -62,7 +62,7 @@ chatIo.setMaxListeners(20);
 const sendNotification = async (senderId,receiverId,message,username) => {
   const user = await User.findById(receiverId);
   if (!user || !user.fcmToken) return console.log("No FCM token found");
-
+  console.log(user);
   const payload = {
     notification: {
       title: username,
