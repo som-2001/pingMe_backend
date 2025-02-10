@@ -91,7 +91,7 @@ app.post("/chat/send-message", async (req, res) => {
 
   if (user.status === "offline") {
     try {
-      sendNotification(receiverId, message,username,senderId);
+      sendNotification(senderId,receiverId, message,username);
       res.json({ success: true, message: "Message sent!" });
     } catch (error) {
       res.status(500).json({ error: "Message sending failed" });
