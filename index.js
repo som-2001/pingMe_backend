@@ -65,9 +65,8 @@ const sendNotification = async (receiverId,message,username,profileImg) => {
 
   const payload = {
     notification: {
-      title: "New Message",
+      title: username,
       body: message,
-      
     },
     data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
