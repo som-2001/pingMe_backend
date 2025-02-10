@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 
+const contactSchema = new mongoose.Schema({
+  phone_number: {
+    type: Number,
+  },
+  address: {
+    type: String,
+  },
+});
 const UserSchema = new mongoose.Schema(
   {
     email: {
@@ -19,12 +27,29 @@ const UserSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    profileImage: {
+      type: String,
+      required: false,
+      validate: {
+        validator: function (v) {
+          return /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|svg|webp))$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL!`,
+      },
+    },
+    about: {
+      type: String,
+    },
+    contact: [contactSchema],
+    description: {
+      type: String,
+    },
     fcmToken: {
       type: String,
     },
-    status:{
-      type:String
-    }
+    status: {
+      type: String,
+    },
   },
   {
     timestamps: true,

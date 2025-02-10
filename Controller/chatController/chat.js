@@ -3,7 +3,7 @@ const Chat = require("../../model/chatSchema");
 const getMessages = async (req, res) => {
   try {
     const { sender_id, receiver_id, page = 1 } = req.body; 
-    const limit = 10;
+    const limit = 30;
 
     const chat = await Chat.findOne({
       $or: [
@@ -79,6 +79,7 @@ const getChats = async (req, res) => {
           receiver_id: 1,
           createdAt: 1,
           sortedComments: 1,
+          profileImage:1,
           sender: { $arrayElemAt: ["$sender", 0] },
           receiver: { $arrayElemAt: ["$receiver", 0] },
         },
@@ -93,4 +94,8 @@ const getChats = async (req, res) => {
   }
 };
 
-module.exports = { getMessages, getChats };
+const uploadImages=async(req,res)=>{
+
+}
+
+module.exports = { getMessages, getChats,uploadImages };
