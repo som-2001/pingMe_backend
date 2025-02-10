@@ -59,7 +59,7 @@ const chatIo = io.of("/chat");
 const users = {};
 chatIo.setMaxListeners(20);
 
-const sendNotification = async (receiverId,message,username,profileImg) => {
+const sendNotification = async (senderId,receiverId,message,username) => {
   const user = await User.findById(receiverId);
   if (!user || !user.fcmToken) return console.log("No FCM token found");
 
@@ -70,9 +70,9 @@ const sendNotification = async (receiverId,message,username,profileImg) => {
     },
     data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
-      url: `https://ping-me-frontend.vercel.app/chat/${receiverId}`, // URL for redirection
+      url: `https://ping-me-frontend.vercel.app/chat/${senderId}`, // URL for redirection
       username:String(username),
-      profileImg:String(profileImg),
+      profileImg:String(user.profileImage),
     },
     token: user.fcmToken,
   };
@@ -85,13 +85,13 @@ const sendNotification = async (receiverId,message,username,profileImg) => {
 };
 
 app.post("/chat/send-message", async (req, res) => {
-  const { senderId, receiverId, message,username,profileImg } = req.body;
+  const { senderId, receiverId, message,username } = req.body;
 
   const user = await User.findById(receiverId);
 
   if (user.status === "offline") {
     try {
-      sendNotification(receiverId, message,username,profileImg);
+      sendNotification(receiverId, message,username,senderId);
       res.json({ success: true, message: "Message sent!" });
     } catch (error) {
       res.status(500).json({ error: "Message sending failed" });
