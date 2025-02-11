@@ -100,7 +100,7 @@ app.post("/chat/send-message", async (req, res) => {
 });
 
 chatIo.on("connection", (socket) => {
-  socket.on("room_join", (data) => {
+  socket.on("room_join", async (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
     socket.join(room);
     users[socket.id] = {
@@ -108,6 +108,18 @@ chatIo.on("connection", (socket) => {
       userid: data.sender_id,
       room: room,
     };
+
+    try {
+      const updateUserStatus = await User.findByIdAndUpdate(
+        id,
+        { status: "online" },
+        { new: true }
+      );
+      return res.status(200).send(updateUserStatus);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send(err.message);
+    }
   });
 
   socket.on("image_message", async (data) => {
@@ -174,7 +186,18 @@ chatIo.on("connection", (socket) => {
         `${user.username} disconnected from room ${user.room}, reason is ${reason}`
       );
       delete users[socket.id];
+    }
 
+    try {
+      const updateUserStatus = await User.findByIdAndUpdate(
+        id,
+        { status: "offline" },
+        { new: true }
+      );
+      return res.status(200).send(updateUserStatus);
+    } catch (err) {
+      console.log(err);
+      return res.status(500).send(err.message);
     }
   });
 });
