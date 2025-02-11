@@ -2,7 +2,7 @@ const Chat = require("../../model/chatSchema");
 
 const getMessages = async (req, res) => {
   try {
-    const { sender_id, receiver_id, page = 1 } = req.body; 
+    const { sender_id, receiver_id, page = 1 } = req.body;
     const limit = 30;
 
     const chat = await Chat.findOne({
@@ -21,17 +21,20 @@ const getMessages = async (req, res) => {
     const totalPages = Math.ceil(totalMessages / limit);
     const skip = (page - 1) * limit;
 
-    const messagesToShow = chat.comments
-      .slice(Math.max(0, totalMessages - (skip + limit)), totalMessages - skip)
-      // .reverse();
+    const messagesToShow = chat.comments.slice(
+      Math.max(0, totalMessages - (skip + limit)),
+      totalMessages - skip
+    );
+    // .reverse();
 
-    res.status(200).json({ messages: messagesToShow, totalMessages, totalPages });
+    res
+      .status(200)
+      .json({ messages: messagesToShow, totalMessages, totalPages });
   } catch (err) {
     console.error("Error fetching messages:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 const getChats = async (req, res) => {
   try {
@@ -79,7 +82,7 @@ const getChats = async (req, res) => {
           receiver_id: 1,
           createdAt: 1,
           sortedComments: 1,
-          profileImage:1,
+          profileImage: 1,
           sender: { $arrayElemAt: ["$sender", 0] },
           receiver: { $arrayElemAt: ["$receiver", 0] },
         },
@@ -94,8 +97,23 @@ const getChats = async (req, res) => {
   }
 };
 
-const uploadImages=async(req,res)=>{
+const uploadImages = async (req, res) => {
+  try {
+    console.log("Received File:", req.file); // ✅ Debugging
 
-}
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
 
-module.exports = { getMessages, getChats,uploadImages };
+    const imagePath = req.file.path;
+
+  
+    return res.status(200).json(imagePath);
+  } catch (err) {
+    console.error("Error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+
+module.exports = { getMessages, getChats, uploadImages };

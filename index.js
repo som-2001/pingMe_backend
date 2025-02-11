@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -59,7 +59,7 @@ const chatIo = io.of("/chat");
 const users = {};
 chatIo.setMaxListeners(20);
 
-const sendNotification = async (senderId,receiverId,message,username) => {
+const sendNotification = async (senderId, receiverId, message, username) => {
   const user = await User.findById(receiverId);
   if (!user || !user.fcmToken) return console.log("No FCM token found");
   console.log(user);
@@ -68,11 +68,11 @@ const sendNotification = async (senderId,receiverId,message,username) => {
       title: username,
       body: message,
     },
-    data: { 
+    data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
       url: `https://ping-me-frontend.vercel.app/chat/${senderId}`, // URL for redirection
-      username:String(username),
-      profileImg:String(user.profileImage),
+      username: String(username),
+      profileImg: String(user.profileImage),
     },
     token: user.fcmToken,
   };
@@ -85,13 +85,13 @@ const sendNotification = async (senderId,receiverId,message,username) => {
 };
 
 app.post("/chat/send-message", async (req, res) => {
-  const { senderId, receiverId, message,username } = req.body;
+  const { senderId, receiverId, message, username } = req.body;
 
   const user = await User.findById(receiverId);
 
   if (user.status === "offline") {
     try {
-      sendNotification(senderId,receiverId, message,username);
+      sendNotification(senderId, receiverId, message, username);
       res.json({ success: true, message: "Message sent!" });
     } catch (error) {
       res.status(500).json({ error: "Message sending failed" });
@@ -108,6 +108,14 @@ chatIo.on("connection", (socket) => {
       userid: data.sender_id,
       room: room,
     };
+  });
+
+  socket.on("image_message", async (data) => {
+    const room = [data.sender_id, data.receiver_id].sort().join("_");
+
+    console.log(data.message);
+    console.log(data);
+    chatIo.to(room).emit("image_message", data);
   });
 
   socket.on("message", async (data) => {
@@ -130,7 +138,7 @@ chatIo.on("connection", (socket) => {
             sender_id: data.sender_id,
             receiver_id: data.receiver_id,
             message: data.message,
-            username:data.username
+            username: data.username,
           },
         ],
       });
@@ -145,7 +153,7 @@ chatIo.on("connection", (socket) => {
               sender_id: data.sender_id,
               receiver_id: data.receiver_id,
               message: data.message,
-              username:data.username
+              username: data.username,
             },
           },
         },

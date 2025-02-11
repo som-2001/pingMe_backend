@@ -5,6 +5,6 @@ const upload = require("../middleware/uploadImg");
 
 router.post('/get-messages',getMessages);
 router.post('/get-chats',getChats);
-router.post('/upload-images',upload('pingMe/chat').array('images',5),uploadImages)
+router.post('/upload-images',upload('pingMe/chat').single("images"),uploadImages)
 
 module.exports=router;
