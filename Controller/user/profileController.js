@@ -79,7 +79,7 @@ const updateStatus = async (req, res) => {
 
     const updateUserStatus = await User.findByIdAndUpdate(
       id,
-      { status: "online" },
+      { status: req.body.status },
       { new: true }
     );
     return res.status(200).send(updateUserStatus);

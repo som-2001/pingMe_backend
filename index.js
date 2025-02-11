@@ -175,11 +175,6 @@ chatIo.on("connection", (socket) => {
       );
       delete users[socket.id];
 
-      await User.findByIdAndUpdate(
-        user.userid,
-        { status: "offline" },
-        { upsert: true }
-      );
     }
   });
 });
