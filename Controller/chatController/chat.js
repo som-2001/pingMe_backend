@@ -107,7 +107,6 @@ const uploadImages = async (req, res) => {
 
     const imagePath = req.file.path;
 
-  
     return res.status(200).json(imagePath);
   } catch (err) {
     console.error("Error:", err);
@@ -115,5 +114,44 @@ const uploadImages = async (req, res) => {
   }
 };
 
+const getMedia = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, senderId, receiverId } = req.body;
 
-module.exports = { getMessages, getChats, uploadImages };
+    const skip = (page - 1) * limit;
+
+    // Find chats between sender and receiver
+    const chats = await Chat.findOne({
+      $or: [
+        { sender_id: senderId, receiver_id: receiverId },
+        { sender_id: receiverId, receiver_id: senderId },
+      ],
+    })
+
+    if (!chats) {
+      return res.status(404).json({ message: "No Media found" });
+    }
+
+    // Filter only media messages (Cloudinary URLs)
+    const media = chats.comments.filter((item) =>
+      item.message.startsWith("https://res.cloudinary.com/dpacclyw4/image/upload")
+    ).reverse();
+
+    // Paginate the media array manually
+    const paginatedMedia = media.slice(skip, skip + limit);
+
+    return res.status(200).json({
+      data: paginatedMedia,
+      currentPage: page,
+      totalPages: Math.ceil(media.length / limit),
+      totalMedia: media.length,
+    });
+
+  } catch (err) {
+    console.error("Error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+
+module.exports = { getMessages, getChats, uploadImages, getMedia };

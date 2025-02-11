@@ -53,14 +53,15 @@ const updateProfile = async (req, res) => {
 
 const updateProfileImg = async (req, res) => {
   try {
-
-    const id=req.params.id;
-    console.log("helloo")
+    const id = req.params.id;
+    console.log("helloo");
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
-    const updatedProfileImg=await User.findByIdAndUpdate(id,{profileImage:req.file.path})
+    const updatedProfileImg = await User.findByIdAndUpdate(id, {
+      profileImage: req.file.path,
+    });
 
     return res.status(200).json({
       message: "Success",
@@ -72,8 +73,25 @@ const updateProfileImg = async (req, res) => {
   }
 };
 
+const updateStatus = async (req, res) => {
+  try {
+    const id = req.body.sender_id;
+
+    const updateUserStatus = await User.findByIdAndUpdate(
+      id,
+      { status: "online" },
+      { new: true }
+    );
+    return res.status(200).send(updateUserStatus);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err.message);
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   updateProfileImg,
+  updateStatus,
 };
