@@ -116,7 +116,7 @@ const uploadImages = async (req, res) => {
 
 const getMedia = async (req, res) => {
   try {
-    const { page = 1, limit = 10, senderId, receiverId } = req.body;
+    const { page = 1, limit = 4, senderId, receiverId } = req.body;
 
     const skip = (page - 1) * limit;
 

@@ -117,7 +117,6 @@ chatIo.on("connection", (socket) => {
       );
     } catch (err) {
       console.log(err.message);
-     
     }
   });
 
@@ -179,14 +178,7 @@ chatIo.on("connection", (socket) => {
 
   socket.on("disconnect", async (reason) => {
     const user = users[socket.id];
-
-    if (user) {
-      console.log(
-        `${user.username} disconnected from room ${user.room}, reason is ${reason}`
-      );
-      delete users[socket.id];
-    }
-
+    console.log(user);
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
         user.userid,
@@ -195,6 +187,13 @@ chatIo.on("connection", (socket) => {
       );
     } catch (err) {
       console.log(err.message);
+    }
+
+    if (user) {
+      console.log(
+        `${user.username} disconnected from room ${user.room} ${user.userid}, reason is ${reason}`
+      );
+      delete users[socket.id];
     }
   });
 });
