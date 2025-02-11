@@ -111,13 +111,13 @@ chatIo.on("connection", (socket) => {
 
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
-        id,
+        sender_id,
         { status: "online" },
         { new: true }
       );
     } catch (err) {
-      console.log(err);
-      return res.status(500).send(err.message);
+      console.log(err.message);
+     
     }
   });
 
@@ -189,13 +189,12 @@ chatIo.on("connection", (socket) => {
 
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
-        id,
+        user.id,
         { status: "offline" },
         { new: true }
       );
     } catch (err) {
-      console.log(err);
-      return res.status(500).send(err.message);
+      console.log(err.message);
     }
   });
 });
