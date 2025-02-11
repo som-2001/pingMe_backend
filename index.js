@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -111,7 +111,7 @@ chatIo.on("connection", (socket) => {
 
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
-        sender_id,
+        data.sender_id,
         { status: "online" },
         { new: true }
       );
@@ -189,7 +189,7 @@ chatIo.on("connection", (socket) => {
 
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
-        user.id,
+        user.userid,
         { status: "offline" },
         { new: true }
       );
