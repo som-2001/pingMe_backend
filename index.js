@@ -115,7 +115,6 @@ chatIo.on("connection", (socket) => {
         { status: "online" },
         { new: true }
       );
-      return res.status(200).send(updateUserStatus);
     } catch (err) {
       console.log(err);
       return res.status(500).send(err.message);
@@ -194,7 +193,6 @@ chatIo.on("connection", (socket) => {
         { status: "offline" },
         { new: true }
       );
-      return res.status(200).send(updateUserStatus);
     } catch (err) {
       console.log(err);
       return res.status(500).send(err.message);
