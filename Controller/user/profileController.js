@@ -24,7 +24,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { username, about, description, phone, address } = req.body;
+    const { about, description, phone, address } = req.body;
     const id = req.params.id;
 
     console.log(id, req.body);
@@ -32,7 +32,7 @@ const updateProfile = async (req, res) => {
     const updatedProfile = await User.findByIdAndUpdate(
       id,
       {
-        username: username,
+        
         about: about,
         description: description,
         contact: [
