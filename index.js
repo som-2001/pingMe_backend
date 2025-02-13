@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -62,7 +62,7 @@ chatIo.setMaxListeners(20);
 const sendNotification = async (senderId, receiverId, message, username) => {
   const user = await User.findById(receiverId);
   if (!user || !user.fcmToken) return console.log("No FCM token found");
-  console.log(user);
+
   const payload = {
     notification: {
       title: username,
@@ -199,10 +199,11 @@ chatIo.on("connection", (socket) => {
 });
 
 app.post("/users/update-fcm-token", async (req, res) => {
-  const { userId, token } = req.body;
-  console.log(req.body);
+  const { sender_id, token } = req.body;
+  console.log("som",req.body);
+
   try {
-    await User.findByIdAndUpdate(userId, { fcmToken: token });
+    await User.findByIdAndUpdate(sender_id, { fcmToken: token });
     res.json({ success: true, message: "FCM Token updated" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update FCM token" });
