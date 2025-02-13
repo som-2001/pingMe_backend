@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -118,6 +118,12 @@ chatIo.on("connection", (socket) => {
     } catch (err) {
       console.log(err.message);
     }
+  });
+
+  socket.on("typing_event", (data) => {
+    const room = [data.sender_id, data.receiver_id].sort().join("_");
+    console.log(data.typing);
+    socket.to(room).emit("typing_event", data);
   });
 
   socket.on("image_message", async (data) => {
@@ -200,7 +206,7 @@ chatIo.on("connection", (socket) => {
 
 app.post("/users/update-fcm-token", async (req, res) => {
   const { sender_id, token } = req.body;
-  console.log("som",req.body);
+  console.log("som", req.body);
 
   try {
     await User.findByIdAndUpdate(sender_id, { fcmToken: token });
