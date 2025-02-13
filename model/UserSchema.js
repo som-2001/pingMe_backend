@@ -47,6 +47,9 @@ const UserSchema = new mongoose.Schema(
     fcmToken: {
       type: String,
     },
+    last_seen:{
+      type: String
+    },
     status: {
       type: String,
     },

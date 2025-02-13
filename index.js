@@ -185,10 +185,11 @@ chatIo.on("connection", (socket) => {
   socket.on("disconnect", async (reason) => {
     const user = users[socket.id];
     console.log(user);
+    const date = new Date().toISOString(); 
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
         user.userid,
-        { status: "offline" },
+        { status: "offline", last_seen: date },
         { new: true }
       );
     } catch (err) {
@@ -206,7 +207,6 @@ chatIo.on("connection", (socket) => {
 
 app.post("/users/update-fcm-token", async (req, res) => {
   const { sender_id, token } = req.body;
-  console.log("som", req.body);
 
   try {
     await User.findByIdAndUpdate(sender_id, { fcmToken: token });
