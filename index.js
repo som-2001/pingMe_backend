@@ -100,6 +100,7 @@ app.post("/chat/send-message", async (req, res) => {
 });
 
 chatIo.on("connection", (socket) => {
+  
   socket.on("room_join", async (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
     socket.join(room);
@@ -118,6 +119,9 @@ chatIo.on("connection", (socket) => {
     } catch (err) {
       console.log(err.message);
     }
+
+    socket.to(room).emit("user_joined",data);
+    chatIo.emit("connectUserBroadcastToAll",data);
   });
 
   socket.on("typing_event", (data) => {
@@ -185,7 +189,7 @@ chatIo.on("connection", (socket) => {
   socket.on("disconnect", async (reason) => {
     const user = users[socket.id];
     console.log(user);
-    const date = new Date().toISOString(); 
+    const date = new Date().toISOString();
     try {
       const updateUserStatus = await User.findByIdAndUpdate(
         user.userid,
@@ -196,6 +200,10 @@ chatIo.on("connection", (socket) => {
       console.log(err.message);
     }
 
+    if (user) {
+      socket.to(user.room).emit("disconnectedUser", { last_seen: date });
+      chatIo.emit("disconnectUserBroadcastToAll",{last_seen:date,id:user.userid});
+    }
     if (user) {
       console.log(
         `${user.username} disconnected from room ${user.room} ${user.userid}, reason is ${reason}`
