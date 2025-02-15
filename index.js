@@ -82,7 +82,7 @@ const sendNotification = async (senderId, receiverId, message, username) => {
     .send(payload)
     .then((response) => console.log("✅ Notification sent:", response))
     .catch((error) => console.log("❌ Notification error:", error));
-};
+}; 
 
 app.post("/chat/send-message", async (req, res) => {
   const { senderId, receiverId, message, username } = req.body;
