@@ -64,10 +64,6 @@ const sendNotification = async (senderId, receiverId, message, username) => {
   if (!user || !user.fcmToken) return console.log("No FCM token found");
 
   const payload = {
-    notification: {
-      title: username,
-      body: message,
-    },
     data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
       url: `https://ping-me-frontend.vercel.app/chat/${senderId}`, // URL for redirection
@@ -81,14 +77,7 @@ const sendNotification = async (senderId, receiverId, message, username) => {
     .messaging()
     .send(payload)
     .then((response) => console.log("✅ Notification sent:", response))
-    .catch((error) => {
-      if (error.errorInfo?.code === "messaging/registration-token-not-registered") {
-        console.log("❌ Invalid FCM token. Removing it from the database...");
-        User.updateOne({ _id: receiverId }, { $unset: { fcmToken: "" } });
-      } else {
-        console.log("❌ Notification error:", error);
-      }
-    });
+    .catch((error) => console.log("❌ Notification error:", error));
 }; 
 
 app.post("/chat/send-message", async (req, res) => {
