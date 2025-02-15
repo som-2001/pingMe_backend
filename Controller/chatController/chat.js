@@ -75,6 +75,7 @@ const getChats = async (req, res) => {
           sortedComments: { $arrayElemAt: ["$comments", -1] },
         },
       },
+
       {
         $project: {
           _id: 1,
@@ -126,16 +127,20 @@ const getMedia = async (req, res) => {
         { sender_id: senderId, receiver_id: receiverId },
         { sender_id: receiverId, receiver_id: senderId },
       ],
-    })
+    });
 
     if (!chats) {
       return res.status(404).json({ message: "No Media found" });
     }
 
     // Filter only media messages (Cloudinary URLs)
-    const media = chats.comments.filter((item) =>
-      item.message.startsWith("https://res.cloudinary.com/dpacclyw4/image/upload")
-    ).reverse();
+    const media = chats.comments
+      .filter((item) =>
+        item.message.startsWith(
+          "https://res.cloudinary.com/dpacclyw4/image/upload"
+        )
+      )
+      .reverse();
 
     // Paginate the media array manually
     const paginatedMedia = media.slice(skip, skip + limit);
@@ -146,12 +151,10 @@ const getMedia = async (req, res) => {
       totalPages: Math.ceil(media.length / limit),
       totalMedia: media.length,
     });
-
   } catch (err) {
     console.error("Error:", err);
     return res.status(500).json({ error: err.message });
   }
 };
-
 
 module.exports = { getMessages, getChats, uploadImages, getMedia };
