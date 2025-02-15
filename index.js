@@ -139,6 +139,9 @@ chatIo.on("connection", (socket) => {
 
   socket.on("message", async (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
+    const room1=`${data.receiver_id}_`;
+
+
     const alreadyExistsInDB = await Chat.findOne({
       $or: [
         { sender_id: data.sender_id, receiver_id: data.receiver_id },
@@ -182,6 +185,7 @@ chatIo.on("connection", (socket) => {
       );
     }
     console.log(data);
+    socket.to(room1).emit("dashboard_message",data);
     chatIo.to(room).emit("message", data);
   });
 

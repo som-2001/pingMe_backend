@@ -88,7 +88,7 @@ const getChats = async (req, res) => {
           receiver: { $arrayElemAt: ["$receiver", 0] },
         },
       },
-      { $sort: { createdAt: -1 } },
+      { $sort: { "sortedComments.createdAt": -1 } }
     ]);
 
     return res.status(200).json({ users: users });
