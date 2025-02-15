@@ -64,6 +64,10 @@ const sendNotification = async (senderId, receiverId, message, username) => {
   if (!user || !user.fcmToken) return console.log("No FCM token found");
 
   const payload = {
+    notification: {
+      title: username,
+      body: message,
+    },
     data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
       url: `https://ping-me-frontend.vercel.app/chat/${senderId}`, // URL for redirection
