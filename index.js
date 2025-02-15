@@ -81,7 +81,14 @@ const sendNotification = async (senderId, receiverId, message, username) => {
     .messaging()
     .send(payload)
     .then((response) => console.log("✅ Notification sent:", response))
-    .catch((error) => console.log("❌ Notification error:", error));
+    .catch((error) => {
+      if (error.errorInfo?.code === "messaging/registration-token-not-registered") {
+        console.log("❌ Invalid FCM token. Removing it from the database...");
+        User.updateOne({ _id: receiverId }, { $unset: { fcmToken: "" } });
+      } else {
+        console.log("❌ Notification error:", error);
+      }
+    });
 }; 
 
 app.post("/chat/send-message", async (req, res) => {
