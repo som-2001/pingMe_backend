@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -64,11 +64,9 @@ const sendNotification = async (senderId, receiverId, message, username) => {
   if (!user || !user.fcmToken) return console.log("No FCM token found");
 
   const payload = {
-    notification: {
+    data: {
       title: username,
       body: message,
-    },
-    data: {
       click_action: "FLUTTER_NOTIFICATION_CLICK",
       url: `https://ping-me-frontend.vercel.app/chat/${senderId}`, // URL for redirection
       username: String(username),
@@ -100,7 +98,6 @@ app.post("/chat/send-message", async (req, res) => {
 });
 
 chatIo.on("connection", (socket) => {
-  
   socket.on("room_join", async (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
     socket.join(room);
@@ -120,8 +117,8 @@ chatIo.on("connection", (socket) => {
       console.log(err.message);
     }
 
-    socket.to(room).emit("user_joined",data);
-    chatIo.emit("connectUserBroadcastToAll",data);
+    socket.to(room).emit("user_joined", data);
+    chatIo.emit("connectUserBroadcastToAll", data);
   });
 
   socket.on("typing_event", (data) => {
@@ -202,7 +199,10 @@ chatIo.on("connection", (socket) => {
 
     if (user) {
       socket.to(user.room).emit("disconnectedUser", { last_seen: date });
-      chatIo.emit("disconnectUserBroadcastToAll",{last_seen:date,id:user.userid});
+      chatIo.emit("disconnectUserBroadcastToAll", {
+        last_seen: date,
+        id: user.userid,
+      });
     }
     if (user) {
       console.log(
