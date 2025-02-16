@@ -33,7 +33,7 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -41,7 +41,7 @@ const io = require("socket.io")(server, {
 
 app.use(
   cors({
-    origin: "https://ping-me-frontend.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -64,7 +64,6 @@ const sendNotification = async (senderId, receiverId, message, username) => {
   if (!user || !user.fcmToken) return console.log("No FCM token found");
 
   const payload = {
-  
     data: {
       title: username,
       body: message,
@@ -81,7 +80,7 @@ const sendNotification = async (senderId, receiverId, message, username) => {
     .send(payload)
     .then((response) => console.log("✅ Notification sent:", response))
     .catch((error) => console.log("❌ Notification error:", error));
-}; 
+};
 
 app.post("/chat/send-message", async (req, res) => {
   const { senderId, receiverId, message, username } = req.body;
@@ -99,7 +98,6 @@ app.post("/chat/send-message", async (req, res) => {
 });
 
 chatIo.on("connection", (socket) => {
-  
   socket.on("room_join", async (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
     socket.join(room);
@@ -119,8 +117,8 @@ chatIo.on("connection", (socket) => {
       console.log(err.message);
     }
 
-    socket.to(room).emit("user_joined",data);
-    chatIo.emit("connectUserBroadcastToAll",data);
+    socket.to(room).emit("user_joined", data);
+    chatIo.emit("connectUserBroadcastToAll", data);
   });
 
   socket.on("typing_event", (data) => {
@@ -138,9 +136,8 @@ chatIo.on("connection", (socket) => {
   });
 
   socket.on("message", async (data) => {
-    const room = [data.sender_id, data.receiver_id].sort().join("_");
-    const room1=`${data.receiver_id}_`;
-
+    const room = [data.sender_id, data.receiver_id].sort().join("_"); //myid_amardeepid
+    const room1=`${data.receiver_id}_`; //67a79893dfa91ff5ec20624d_
 
     const alreadyExistsInDB = await Chat.findOne({
       $or: [
@@ -189,6 +186,22 @@ chatIo.on("connection", (socket) => {
     chatIo.to(room).emit("message", data);
   });
 
+  socket.on("leave_room", () => {
+    const user = users[socket.id];
+    
+    if (user && user.room) {
+      socket.leave(user.room);
+      console.log(`User ${user.username} left room: ${user.room}`);
+      
+      // Broadcast to others that the user left
+      socket.to(user.room).emit("user_left", { username: user.username });
+      
+      // Clear user's room info from `users`
+      delete users[socket.id];
+    }
+  });
+  
+
   socket.on("disconnect", async (reason) => {
     const user = users[socket.id];
     console.log(user);
@@ -205,7 +218,10 @@ chatIo.on("connection", (socket) => {
 
     if (user) {
       socket.to(user.room).emit("disconnectedUser", { last_seen: date });
-      chatIo.emit("disconnectUserBroadcastToAll",{last_seen:date,id:user.userid});
+      chatIo.emit("disconnectUserBroadcastToAll", {
+        last_seen: date,
+        id: user.userid,
+      });
     }
     if (user) {
       console.log(
