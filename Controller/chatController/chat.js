@@ -69,7 +69,13 @@ const getChats = async (req, res) => {
           as: "receiver",
         },
       },
-
+      {
+        $addFields: {
+          unreadMessages:{
+            unread:"$unread"
+          }
+        }
+      },
       {
         $addFields: {
           sortedComments: { $arrayElemAt: ["$comments", -1] },
@@ -84,6 +90,7 @@ const getChats = async (req, res) => {
           createdAt: 1,
           sortedComments: 1,
           profileImage: 1,
+          unread:1,
           sender: { $arrayElemAt: ["$sender", 0] },
           receiver: { $arrayElemAt: ["$receiver", 0] },
         },

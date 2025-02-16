@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const commentSchema = new mongoose.Schema(
   {
     sender_id: {
@@ -14,6 +15,7 @@ const commentSchema = new mongoose.Schema(
       type: String,
       required:true
     },
+   
     username:{
       type:String,
       required:true
@@ -23,6 +25,14 @@ const commentSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+const unreadSchema=new mongoose.Schema({
+  id:{
+    type:String,
+    default:0
+  },
+  count: { type: Number, default: 0 }
+})
 
 const chatSchema = new mongoose.Schema(
   {
@@ -42,6 +52,7 @@ const chatSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
     },
+    unread:unreadSchema,
     comments: [commentSchema],
   },
   {

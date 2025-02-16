@@ -117,6 +117,34 @@ chatIo.on("connection", (socket) => {
       console.log(err.message);
     }
 
+    const updateUnreadMessage = await Chat.findOne({
+      $or: [
+        { sender_id: data.sender_id, receiver_id: data.receiver_id },
+        { sender_id: data.receiver_id, receiver_id: data.sender_id },
+      ],
+    });
+
+    if (
+      updateUnreadMessage &&
+      updateUnreadMessage?.unread?.id !== data.sender_id
+    ) {
+      await Chat.findOneAndUpdate(
+        {
+          $or: [
+            { sender_id: data.sender_id, receiver_id: data.receiver_id },
+            { sender_id: data.receiver_id, receiver_id: data.sender_id },
+          ],
+        },
+        {
+          unread: {
+            id: 0,
+            count: 0,
+          },
+        }
+      );
+    }
+
+    socket.to(`${data.receiver_id}_`).emit("seen_message",data);
     socket.to(room).emit("user_joined", data);
     chatIo.emit("connectUserBroadcastToAll", data);
   });
@@ -136,8 +164,8 @@ chatIo.on("connection", (socket) => {
   });
 
   socket.on("message", async (data) => {
-    const room = [data.sender_id, data.receiver_id].sort().join("_"); //myid_amardeepid
-    const room1=`${data.receiver_id}_`; //67a79893dfa91ff5ec20624d_
+    const room = [data.sender_id, data.receiver_id].sort().join("_"); //sender_id is doing the message
+    const room1 = `${data.receiver_id}_`; //67a79893dfa91ff5ec20624d_
 
     const alreadyExistsInDB = await Chat.findOne({
       $or: [
@@ -181,26 +209,65 @@ chatIo.on("connection", (socket) => {
         }
       );
     }
-    console.log(data);
-    socket.to(room1).emit("dashboard_message",data);
+
+    // Find the chat between the two users
+
+    const socketsInRoom = socket.adapter.rooms.get(room);
+
+    if (socketsInRoom) {
+      // Convert the Set to an array and check if any socket's userId matches data.receiver_id
+      const isReceiverInRoom = Array.from(socketsInRoom).some(
+        (socketId) => users[socketId]?.userid === data.receiver_id
+      );
+
+    if (!isReceiverInRoom) {
+      const unreadMessage = await Chat.findOne({
+        $or: [
+          { sender_id: data.sender_id, receiver_id: data.receiver_id },
+          { sender_id: data.receiver_id, receiver_id: data.sender_id },
+        ],
+      });
+
+      if (unreadMessage) {
+       
+        const unreadCount = unreadMessage.unread?.count || 0;
+
+        // Increment the count
+        await Chat.findOneAndUpdate(
+          {
+            $or: [
+              { sender_id: data.sender_id, receiver_id: data.receiver_id },
+              { sender_id: data.receiver_id, receiver_id: data.sender_id },
+            ],
+          },
+          {
+            unread: {
+              id: data.sender_id,
+              count: unreadCount + 1,
+            },
+          }
+        );
+      }
+    }
+  }
+    socket.to(room1).emit("dashboard_message", data);
     chatIo.to(room).emit("message", data);
   });
 
   socket.on("leave_room", () => {
     const user = users[socket.id];
-    
+
     if (user && user.room) {
       socket.leave(user.room);
       console.log(`User ${user.username} left room: ${user.room}`);
-      
+
       // Broadcast to others that the user left
       socket.to(user.room).emit("user_left", { username: user.username });
-      
+
       // Clear user's room info from `users`
       delete users[socket.id];
     }
   });
-  
 
   socket.on("disconnect", async (reason) => {
     const user = users[socket.id];
