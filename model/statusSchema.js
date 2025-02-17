@@ -17,7 +17,7 @@ const userStatusSchema = new mongoose.Schema(
     },
     status: statusSchema,
 
-    live: { type: Date, default: Date.now, expires: 3600 * 24 },
+    live: { type: Date, default: Date.now, expires: 3600 * 12 },
   },
   {
     timestamps: true,
