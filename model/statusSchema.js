@@ -1,13 +1,27 @@
 const mongoose = require("mongoose");
 
-const userStatusSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  status: {
+const statusSchema = new mongoose.Schema({
+  message: {
     type: String,
-    enum: ["Online", "Offline", "Typing...", "Away"],
-    default: "Online",
   },
-  lastActive: { type: Date, default: Date.now, expires: 3600*24 },
+  image: {
+    type: String,
+  },
 });
+const userStatusSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+      required: true,
+    },
+    status: statusSchema,
 
-module.exports= mongoose.model("UserStatus", userStatusSchema);
+    live: { type: Date, default: Date.now, expires: 3600 * 24 },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("Status", userStatusSchema);

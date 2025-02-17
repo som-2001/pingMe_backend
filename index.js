@@ -4,6 +4,7 @@ const connection = require("./connection/Connection");
 const authRoute = require("./routes/auth.js");
 const userListRoute = require("./routes/userList.js");
 const chatRoute = require("./routes/chat.js");
+const statusRoute = require("./routes/status.js");
 const Chat = require("./model/chatSchema.js");
 const User = require("./model/UserSchema.js");
 const app = express();
@@ -39,7 +40,7 @@ const io = require("socket.io")(server, {
   },
 });
 
-app.use( 
+app.use(
   cors({
     origin: "https://ping-me-frontend.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -53,6 +54,7 @@ connection();
 app.use("/auth", authRoute);
 app.use("/user", userListRoute);
 app.use("/chat", chatRoute);
+app.use("/status", statusRoute);
 //chat controller
 
 const chatIo = io.of("/chat");
@@ -144,15 +146,29 @@ chatIo.on("connection", (socket) => {
       );
     }
 
-    socket.to(`${data.receiver_id}_`).emit("seen_message",data);
+    socket.to(`${data.receiver_id}_`).emit("seen_message", data);
     socket.to(room).emit("user_joined", data);
     chatIo.emit("connectUserBroadcastToAll", data);
+  });
+
+  socket.on("pingME_room", (data) => {
+    socket.join(data.room);
+    users[socket.id] = {
+      username: data.username,
+      userid: data.sender_id,
+      room: data.room,
+    };
   });
 
   socket.on("typing_event", (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
     console.log(data.typing);
     socket.to(room).emit("typing_event", data);
+  });
+
+  socket.on("status-upload", (data) => {
+    console.log(data);
+    chatIo.to(data.room).emit("status-upload", data);
   });
 
   socket.on("image_message", async (data) => {
@@ -220,36 +236,35 @@ chatIo.on("connection", (socket) => {
         (socketId) => users[socketId]?.userid === data.receiver_id
       );
 
-    if (!isReceiverInRoom) {
-      const unreadMessage = await Chat.findOne({
-        $or: [
-          { sender_id: data.sender_id, receiver_id: data.receiver_id },
-          { sender_id: data.receiver_id, receiver_id: data.sender_id },
-        ],
-      });
+      if (!isReceiverInRoom) {
+        const unreadMessage = await Chat.findOne({
+          $or: [
+            { sender_id: data.sender_id, receiver_id: data.receiver_id },
+            { sender_id: data.receiver_id, receiver_id: data.sender_id },
+          ],
+        });
 
-      if (unreadMessage) {
-       
-        const unreadCount = unreadMessage.unread?.count || 0;
+        if (unreadMessage) {
+          const unreadCount = unreadMessage.unread?.count || 0;
 
-        // Increment the count
-        await Chat.findOneAndUpdate(
-          {
-            $or: [
-              { sender_id: data.sender_id, receiver_id: data.receiver_id },
-              { sender_id: data.receiver_id, receiver_id: data.sender_id },
-            ],
-          },
-          {
-            unread: {
-              id: data.sender_id,
-              count: unreadCount + 1,
+          // Increment the count
+          await Chat.findOneAndUpdate(
+            {
+              $or: [
+                { sender_id: data.sender_id, receiver_id: data.receiver_id },
+                { sender_id: data.receiver_id, receiver_id: data.sender_id },
+              ],
             },
-          }
-        );
+            {
+              unread: {
+                id: data.sender_id,
+                count: unreadCount + 1,
+              },
+            }
+          );
+        }
       }
     }
-  }
     socket.to(room1).emit("dashboard_message", data);
     chatIo.to(room).emit("message", data);
   });
