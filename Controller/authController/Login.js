@@ -18,7 +18,7 @@ const Login=async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
 
     // Validate password
-    console.log(user);
+ 
 
     const isValid = is_match(password, user.salt[1], user.salt[0]);
     if (!isValid)
@@ -46,7 +46,7 @@ const Login=async (req, res) => {
 
     await User.findByIdAndUpdate(user._id,{status:"online"});
     
-    res.json({ message: "Login successful",accessToken:accessToken,refreshToken:refreshToken});
+    res.json({ message: "Login successful",accessToken:accessToken,refreshToken:refreshToken,user:user});
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

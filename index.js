@@ -39,7 +39,7 @@ const io = require("socket.io")(server, {
   },
 });
 
-app.use(
+app.use( 
   cors({
     origin: "https://ping-me-frontend.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
