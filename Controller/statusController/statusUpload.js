@@ -39,7 +39,7 @@ const statusUpload = async (req, res) => {
 
 const getStatus = async (req, res) => {
   const page = req.body.page || 1;
-  const limit = 10;
+  const limit = 100;
 
   try {
     const status = await Status.find()

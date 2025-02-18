@@ -11,6 +11,8 @@ const app = express();
 const server = require("http").createServer(app);
 const dotenv = require("dotenv");
 const admin = require("firebase-admin");
+const rateLimit=require("express-rate-limit");
+
 dotenv.config();
 
 const serviceAccountconfig = {
@@ -151,17 +153,6 @@ chatIo.on("connection", (socket) => {
     chatIo.emit("connectUserBroadcastToAll", data);
   });
 
-  // socket.on("pingME_room", (data) => {
-
-  //   console.log(data,"156");
-  //   socket.join(data.room);
-  //   users[socket.id] = {
-  //     username: data.username,
-  //     userid: data.sender_id,
-  //     room: data.room,
-  //   };
-  // });
-
   socket.on("typing_event", (data) => {
     const room = [data.sender_id, data.receiver_id].sort().join("_");
     console.log(data.typing);
@@ -170,7 +161,7 @@ chatIo.on("connection", (socket) => {
 
   socket.on("status-upload", (data) => {
     console.log(data);
-    socket.broadcast.emit("status-upload", data);
+    chatIo.emit("status-upload", data);
   });
 
   socket.on("image_message", async (data) => {
