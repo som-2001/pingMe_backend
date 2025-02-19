@@ -36,8 +36,8 @@ admin.initializeApp({
 //https://ping-me-frontend.vercel.app
 const io = require("socket.io")(server, {
   cors: {
-    origin: "https://ping-me-frontend.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"], 
     credentials: true,
   },
 });
